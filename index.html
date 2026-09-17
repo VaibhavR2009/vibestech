@@ -33,8 +33,6 @@
 
   /* ---------- masthead ---------- */
   .masthead{border-top:3px solid var(--ink);margin-top:28px}
-  .mast-row{display:flex;justify-content:space-between;gap:16px;padding:11px 2px;border-bottom:1px solid var(--line);
-    font:500 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
   .brand{padding:34px 0 28px;border-bottom:1px solid var(--ink)}
   .brand h1{font:700 clamp(52px,9vw,86px)/0.95 var(--sans);letter-spacing:-.03em}
   .brand h1 .sl{color:var(--accent)}
@@ -71,16 +69,32 @@
   .tags{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}
   .tag{font:500 10.5px var(--mono);letter-spacing:.05em;color:var(--accent);cursor:pointer;background:none;border:0;padding:0}
   .tag:hover{text-decoration:underline}
-  .row{display:grid;grid-template-columns:112px 1fr auto;gap:18px;align-items:baseline;
+
+  .cover{display:block;width:100%;object-fit:cover;border:1px solid var(--line);border-radius:10px;background:var(--paper2)}
+  .featured .cover{aspect-ratio:2/1;margin-bottom:24px;cursor:pointer}
+  .article-head .cover{max-height:420px;margin:28px 0 0}
+  .pane-body .cover{max-height:240px;margin:16px 0 0}
+  .thumb{width:92px;height:62px;object-fit:cover;border:1px solid var(--line);border-radius:6px;background:var(--paper2);display:block}
+
+  .row{display:grid;grid-template-columns:112px 1fr auto;gap:18px;align-items:center;
     padding:19px 6px 19px 4px;border-bottom:1px solid var(--line);position:relative;cursor:pointer;transition:background .2s}
+  .row.wcov{grid-template-columns:auto 112px 1fr auto;gap:16px}
   .row::before{content:"";position:absolute;left:-6px;top:0;bottom:0;width:2px;background:var(--accent);transform:scaleY(0);transition:transform .25s}
   .row:hover{background:var(--accent-tint)}
   .row:hover::before{transform:scaleY(1)}
-  .row .date{font:500 11px var(--mono);letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;padding-top:4px}
+  .row .date{font:500 11px var(--mono);letter-spacing:.06em;color:var(--ink2);text-transform:uppercase}
   .row .title{font:500 18px/1.35 var(--sans)}
-  .rt{display:flex;align-items:center;gap:8px;font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);padding-top:6px}
+  .rt{display:flex;align-items:center;gap:8px;font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
   .rt svg{width:14px;height:14px;opacity:0;transform:translate(-6px,6px);transition:.25s;color:var(--accent)}
   .row:hover .rt svg{opacity:1;transform:none}
+
+  .morewrap{display:flex;justify-content:center;padding:38px 0 6px}
+  .morebtn{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+    background:none;border:1px solid var(--ink);border-radius:999px;padding:13px 32px;cursor:pointer;transition:.18s}
+  .morebtn:hover{background:var(--ink);color:var(--paper)}
+  .endofindex{display:flex;align-items:center;justify-content:center;gap:16px;padding:42px 0 6px;
+    font:600 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink2)}
+  .endofindex::before,.endofindex::after{content:"";width:44px;height:1px;background:var(--line)}
 
   /* ---------- reader ---------- */
   .reader{max-width:730px;margin:0 auto;padding:44px 22px 90px}
@@ -148,6 +162,12 @@
   .field.err .ferr{display:block}
   .frow{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 
+  .covrow{display:flex;gap:14px;align-items:center}
+  .covrow input{flex:1;width:auto;min-width:0}
+  .covprev{width:92px;height:62px;flex:none;border:1px solid var(--line);border-radius:6px;background:var(--paper2);
+    overflow:hidden;display:grid;place-items:center;font:500 8.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+  .covprev img{width:100%;height:100%;object-fit:cover}
+
   .metarow{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:6px 0 16px;padding:13px 16px;border:1px solid var(--line);border-radius:6px;background:var(--paper2)}
   .switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
   .switch input{display:none}
@@ -188,6 +208,7 @@
   .erow .et{font:500 15.5px var(--sans);cursor:pointer;transition:.15s}
   .erow .et:hover{color:var(--accent)}
   .erow .em{font:400 10.5px var(--mono);color:var(--ink2);margin-top:5px}
+  .etthumb{width:30px;height:30px;object-fit:cover;border:1px solid var(--line);border-radius:4px;vertical-align:-9px;margin-right:10px}
   .status{font:600 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:3px}
   .status.live{color:var(--accent);background:var(--accent-tint)}
   .status.draft{color:var(--ink2);background:var(--paper2)}
@@ -210,7 +231,7 @@
   .auth-err{font:400 12px var(--mono);color:var(--danger);display:none}
   .backtosite{margin-top:46px}
 
-  /* ---------- states, setup, toast, footer ---------- */
+  /* ---------- states, setup, toast ---------- */
   .statebox{padding:70px 0;text-align:center}
   .statebox svg{width:26px;height:26px;color:var(--ink);opacity:.3;margin-bottom:16px}
   .statebox h3{font:italic 500 22px var(--serif);margin-bottom:10px}
@@ -239,12 +260,6 @@
   @keyframes toastIn{from{opacity:0;transform:translateY(12px)}}
   @keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
 
-  .footer{border-top:1px solid var(--ink);margin-top:72px;padding:18px 2px 36px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
-    font:400 11px var(--mono);letter-spacing:.06em;color:var(--ink2)}
-  .footer a{color:var(--ink2);display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:.2s}
-  .footer a:hover{color:var(--accent)}
-  .footer a svg{width:12px;height:12px}
-
   @media(max-width:1000px){
     .editor{grid-template-columns:1fr;gap:28px}
     .preview-pane{position:static;max-height:none}
@@ -253,11 +268,15 @@
     .masthead{margin-top:18px}
     .brand{padding:26px 0 20px}
     .row{grid-template-columns:1fr;gap:8px}
+    .row.wcov{grid-template-columns:76px 1fr;gap:5px 16px}
+    .row.wcov .thumb{grid-row:1/4;width:76px;height:76px}
+    .row.wcov .date,.row.wcov .rmain,.row.wcov .rt{grid-column:2}
     .rt{padding-top:0}
     .frow{grid-template-columns:1fr}
     .ab-user{display:none}
     .erow{grid-template-columns:1fr auto}
     .kbdhint{display:none}
+    .featured .cover{aspect-ratio:16/10}
   }
 </style>
 </head>
@@ -279,7 +298,6 @@
     show(e);
   }, true);
   window.addEventListener('unhandledrejection', show);
-  /* Once real content has rendered, retire the fallback screen for good. */
   var obs = new MutationObserver(function(){
     var app = document.getElementById('app');
     if(app && app.innerHTML.trim()){
@@ -328,10 +346,11 @@ const FIREBASE_CONFIG = {
 /* Site identity — rename freely */
 const SITE = {
   name: "/log",
-  tagline: "Notes on technology, kept & catalogued.",
-  kicker: "TECH · FIELD NOTES"
+  tagline: "Notes on technology, kept & catalogued."
 };
 /* ============================================================ */
+
+const PAGE = 10;   // entries per page on the index
 
 const app  = document.getElementById('app');
 const bar  = document.getElementById('bar');
@@ -341,6 +360,7 @@ const state = {
   user:null, authResolved:false,
   articles:[], loaded:false, loadError:null,
   tag:null, query:'',
+  visible: PAGE,
   editingId:null, form:null
 };
 
@@ -351,7 +371,7 @@ if(CONFIGURED && window.firebase){
     db   = firebase.firestore();
     auth = firebase.auth();
     auth.onAuthStateChanged(u => { state.user = u; state.authResolved = true; if(location.hash.startsWith('#/admin')) route(); });
-    setTimeout(()=>{ state.authResolved = true; if(location.hash.startsWith('#/admin')) route(); }, 3000); // CDN fallback
+    setTimeout(()=>{ state.authResolved = true; if(location.hash.startsWith('#/admin')) route(); }, 3000);
   }catch(e){
     initError = e.message || String(e);
     console.error('Firebase failed to initialize:', e);
@@ -403,7 +423,12 @@ function parseTags(str){
 
 /* ---------- tiny markdown renderer ---------- */
 function mdToHtml(src){
-  const safeUrl = u => { u = (u||'').trim(); return /^(https?:\/\/|mailto:|\/|#)/i.test(u) ? u : '#'; };
+  const safeUrl = u => {
+    u = (u||'').trim();
+    if(/^(https?:\/\/|mailto:|\/|#)/i.test(u)) return u;
+    if(/^[a-z0-9%_.\-/ ]+$/i.test(u) && !u.includes('..')) return u;   // relative path, e.g. images/pic.jpg
+    return '#';
+  };
   const lines = esc(String(src||'').replace(/\r\n?/g,'\n')).split('\n');
 
   const inline = t => {
@@ -422,7 +447,7 @@ function mdToHtml(src){
   const SPECIAL = /^(```|#{1,4}\s|>\s?|\s*[-*+]\s|\s*\d+[.)]\s|(-{3,}|\*{3,})\s*$)/;
   while(i < lines.length){
     const line = lines[i];
-    if(/^```/.test(line)){                                   // fenced code block
+    if(/^```/.test(line)){
       const lang = line.slice(3).trim(); i++;
       const buf = [];
       while(i < lines.length && !/^```/.test(lines[i])){ buf.push(lines[i]); i++; }
@@ -431,28 +456,28 @@ function mdToHtml(src){
       continue;
     }
     let m;
-    if((m = line.match(/^(#{1,4})\s+(.*)/))){                // heading
+    if((m = line.match(/^(#{1,4})\s+(.*)/))){
       const lv = Math.min(m[1].length + 1, 4);
       out.push(`<h${lv}>${inline(m[2])}</h${lv}>`); i++; continue;
     }
     if(/^(-{3,}|\*{3,})\s*$/.test(line)){ out.push('<hr>'); i++; continue; }
-    if(/^>\s?/.test(line)){                                  // blockquote
+    if(/^>\s?/.test(line)){
       const buf = [];
       while(i < lines.length && /^>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^>\s?/,'')); i++; }
       out.push(`<blockquote>${inline(buf.join('<br>'))}</blockquote>`); continue;
     }
-    if(/^\s*[-*+]\s+/.test(line)){                           // unordered list
+    if(/^\s*[-*+]\s+/.test(line)){
       const items = [];
       while(i < lines.length && /^\s*[-*+]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*[-*+]\s+/,''))+'</li>'); i++; }
       out.push('<ul>'+items.join('')+'</ul>'); continue;
     }
-    if(/^\s*\d+[.)]\s+/.test(line)){                         // ordered list
+    if(/^\s*\d+[.)]\s+/.test(line)){
       const items = [];
       while(i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>'); i++; }
       out.push('<ol>'+items.join('')+'</ol>'); continue;
     }
     if(line.trim() === ''){ i++; continue; }
-    const buf = [line]; i++;                                 // paragraph
+    const buf = [line]; i++;
     while(i < lines.length && lines[i].trim() !== '' && !SPECIAL.test(lines[i])){ buf.push(lines[i]); i++; }
     out.push('<p>'+buf.map(inline).join('<br>')+'</p>');
   }
@@ -492,9 +517,8 @@ async function renderIndex(){
   if(!CONFIGURED){ renderSetup(); return; }
   const myHash = location.hash;
   app.innerHTML = `
-  <div class="wrap view">
+  <div class="wrap view" style="padding-bottom:80px">
     <header class="masthead">
-      <div class="mast-row"><span>${esc(SITE.kicker)}</span><span>${new Date().getFullYear()} — VOL. 01</span></div>
       <div class="brand">
         <h1>${brandHTML()}</h1>
         <p>${esc(SITE.tagline)}</p>
@@ -502,10 +526,6 @@ async function renderIndex(){
     </header>
     <div id="toolbarSlot"></div>
     <div id="list">${loadingHTML('opening the archive')}</div>
-    <footer class="footer">
-      <span>© ${new Date().getFullYear()} ${esc(SITE.name)} — kept on firebase</span>
-      <a href="#/admin">publisher <i data-lucide="arrow-right"></i></a>
-    </footer>
   </div>`;
   await loadArticles(true);
   if(location.hash !== myHash) return;
@@ -525,9 +545,10 @@ function buildToolbar(){
       ${tags.map(t=>`<button class="chip ${state.tag===t?'active':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}
     </div>
   </div>`;
-  $('#q').addEventListener('input', e => { state.query = e.target.value; renderList(); });
+  $('#q').addEventListener('input', e => { state.query = e.target.value; state.visible = PAGE; renderList(); });
   document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', ()=>{
     state.tag = c.dataset.tag || null;
+    state.visible = PAGE;
     document.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x===c));
     renderList();
   }));
@@ -544,15 +565,20 @@ function renderList(){
 
   if(!items.length){ $('#list').innerHTML = emptyIndexHTML(); bindTags(); icons(); return; }
 
+  const total = items.length;
   const showFeatured = !state.tag && !q;
+  const cap = Math.min(state.visible, total);
   const featured = showFeatured ? items[0] : null;
-  const rows = showFeatured ? items.slice(1) : items;
+  const rows = showFeatured ? items.slice(1, cap) : items.slice(0, cap);
+  const shown = (featured ? 1 : 0) + rows.length;
+  const remaining = total - shown;
   const tagBtns = ts => (ts||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join('');
 
   let html = '';
   if(featured){
     html += `
     <section class="featured">
+      ${featured.coverImage ? `<img class="cover" data-open="${featured.id}" src="${esc(featured.coverImage)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
       <span class="kicker">latest — ${fmtDate(featured.createdAt)}</span>
       <h2 data-open="${featured.id}">${esc(featured.title)}</h2>
       <p class="excerpt">${esc(excerptOf(featured.body))}</p>
@@ -560,22 +586,35 @@ function renderList(){
       <a class="readlink" href="#/read/${featured.id}">read the piece <i data-lucide="arrow-right"></i></a>
     </section>`;
   }
-  html += `<div class="section-label"><span>index</span><span>${items.length} ${items.length===1?'entry':'entries'}</span></div>`;
+
+  const countLabel = shown < total ? `showing ${shown} of ${total}` : `${total} ${total===1?'entry':'entries'}`;
+  html += `<div class="section-label"><span>index</span><span>${countLabel}</span></div>`;
   html += rows.map(a => `
-    <article class="row" data-open="${a.id}">
+    <article class="row ${a.coverImage ? 'wcov' : ''}" data-open="${a.id}">
+      ${a.coverImage ? `<img class="thumb" src="${esc(a.coverImage)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
       <span class="date">${fmtDate(a.createdAt)}</span>
-      <div>
+      <div class="rmain">
         <div class="title">${esc(a.title)}</div>
         ${(a.tags||[]).length ? `<div class="tags">${tagBtns(a.tags)}</div>` : ''}
       </div>
       <div class="rt"><span>${readMin(a.body)} min</span><i data-lucide="arrow-up-right"></i></div>
     </article>`).join('');
 
+  if(remaining > 0){
+    const next = Math.min(PAGE, remaining);
+    const label = remaining > next ? `show ${next} more · ${remaining} remaining` : `show ${next} more`;
+    html += `<div class="morewrap"><button class="morebtn" id="moreBtn">${label}</button></div>`;
+  } else if(total > PAGE){
+    html += `<div class="endofindex">end of the index</div>`;
+  }
+
   $('#list').innerHTML = html;
   document.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', e => {
     if(e.target.closest('.tag')) return;
     location.hash = '#/read/' + el.dataset.open;
   }));
+  const mb = $('#moreBtn');
+  if(mb) mb.addEventListener('click', ()=>{ state.visible += PAGE; renderList(); });
   bindTags(); icons();
 }
 
@@ -586,8 +625,8 @@ function emptyIndexHTML(){
     <i data-lucide="book-open"></i>
     <h3>${filtered ? 'Nothing matches that.' : 'The index is empty.'}</h3>
     <p>${filtered ? 'Try a different tag or search.'
-                  : hasDrafts ? 'You have drafts waiting — publish them from the <a href="#/admin">publisher</a>.'
-                              : 'Publish the first entry from the <a href="#/admin">publisher</a>.'}</p>
+                  : hasDrafts ? 'You have drafts waiting — publish them from the publisher at #/admin.'
+                              : 'Publish the first entry from the publisher at #/admin.'}</p>
   </div>`;
 }
 function loadErrorHTML(){
@@ -605,7 +644,7 @@ function bindTags(){
   document.querySelectorAll('.tag').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); gotoTag(b.dataset.tag); }));
 }
 function gotoTag(t){
-  state.tag = t; state.query = '';
+  state.tag = t; state.query = ''; state.visible = PAGE;
   if(location.hash && location.hash !== '#/'){ location.hash = '#/'; }
   else { renderIndex(); }
 }
@@ -637,6 +676,7 @@ async function renderReader(id){
         <span>${fmtDate(a.createdAt)}</span><span>·</span><span>${readMin(a.body)} min read</span>
         ${(a.tags||[]).length ? `<span>·</span><span>${a.tags.map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join(' ')}</span>` : ''}
       </div>
+      ${a.coverImage ? `<img class="cover" src="${esc(a.coverImage)}" alt="" onerror="this.remove()">` : ''}
       ${a.sourceUrl ? `<div class="source-box"><i data-lucide="external-link"></i><span>source —</span>
         <a href="${esc(a.sourceUrl)}" target="_blank" rel="noopener">${esc(hostnameOf(a.sourceUrl))}</a></div>` : ''}
       ${!a.published ? `<div class="source-box" style="border-style:dashed"><i data-lucide="eye-off"></i><span>DRAFT — only visible to you while signed in.</span></div>` : ''}
@@ -647,7 +687,7 @@ async function renderReader(id){
   </article>`;
   bindTags(); icons();
 
-  scrollHandler = onScroll;                       // reading progress
+  scrollHandler = onScroll;
   window.addEventListener('scroll', scrollHandler, {passive:true});
   onScroll();
 }
@@ -720,7 +760,7 @@ function renderAuth(){
   icons();
 }
 
-const freshForm = () => ({ title:'', body:'', sourceUrl:'', tags:'', published:true });
+const freshForm = () => ({ title:'', body:'', coverImage:'', sourceUrl:'', tags:'', published:true });
 function startNew(){ state.editingId = null; state.form = freshForm(); }
 
 function renderAdmin(){
@@ -752,6 +792,12 @@ function renderAdmin(){
           <div class="field"><label>tags — comma separated (optional)</label>
             <input id="tagsField" class="mono-input" type="text" placeholder="rust, infra, ai" value="${esc(f.tags)}"></div>
         </div>
+        <div class="field"><label>cover image url — shown at the top of the entry (optional)</label>
+          <div class="covrow">
+            <div class="covprev" id="covPrevBox"><span>no image</span></div>
+            <input id="coverField" class="mono-input" type="text" placeholder="https://image-url.com… or images/pic.jpg" value="${esc(f.coverImage)}">
+          </div>
+        </div>
         <div class="metarow">
           <label class="switch"><input id="pubToggle" type="checkbox" ${f.published?'checked':''}><span class="track"></span><span class="sw-label">published</span></label>
           <span class="estats" id="edStats">0 words · 1 min</span>
@@ -762,12 +808,13 @@ function renderAdmin(){
           <button class="mini" data-md="i"><i>I</i></button>
           <button class="mini" data-md="code">&lt;/&gt;</button>
           <button class="mini" data-md="link">link</button>
+          <button class="mini" data-md="img">image</button>
           <button class="mini" data-md="quote">quote</button>
           <button class="mini" data-md="list">list</button>
           <button class="mini" data-md="block">block</button>
         </div>
         <textarea id="bodyField" placeholder="Write in **markdown** — paste content from anywhere.
-The right pane renders it live as you type.">${esc(f.body)}</textarea>
+Use the image button to embed pictures between paragraphs.">${esc(f.body)}</textarea>
         <div class="actions">
           <button class="btn btn-primary" id="saveBtn"><i data-lucide="${state.editingId?'check':'send-horizontal'}"></i>${state.editingId?'save changes':'publish entry'}</button>
           ${state.editingId ? '<button class="cancellink" id="cancelEdit">cancel editing</button>' : ''}
@@ -790,26 +837,35 @@ The right pane renders it live as you type.">${esc(f.body)}</textarea>
   icons();
 }
 
+function updateCovPrev(){
+  const box = $('#covPrevBox'); if(!box) return;
+  const u = (state.form.coverImage || '').trim();
+  if(!u){ box.innerHTML = '<span>no image</span>'; return; }
+  box.innerHTML = `<img src="${esc(u)}" alt="" onerror="this.parentNode.innerHTML='<span>not found</span>'">`;
+}
+
 function bindEditor(){
   const f = state.form;
   const titleF = $('#titleField'), sourceF = $('#sourceField'), tagsF = $('#tagsField'),
-        bodyF = $('#bodyField'),  pubT = $('#pubToggle');
+        coverF = $('#coverField'), bodyF = $('#bodyField'), pubT = $('#pubToggle');
 
   titleF.addEventListener('input', ()=>{ f.title = titleF.value; $('#fTitle').classList.remove('err'); });
   sourceF.addEventListener('input', ()=> f.sourceUrl = sourceF.value);
   tagsF.addEventListener('input',   ()=> f.tags = tagsF.value);
+  coverF.addEventListener('input',  ()=>{ f.coverImage = coverF.value; updateCovPrev(); renderPreview(); });
   pubT.addEventListener('change',  ()=> f.published = pubT.checked);
   bodyF.addEventListener('input',   ()=>{ f.body = bodyF.value; renderPreview(); });
 
   const MD = {
-    h2:    ['\n## ',   'Heading',      '\n\n'],
-    b:     ['**',      'bold text',    '**'],
-    i:     ['*',       'italic text',  '*'],
-    code:  ['`',       'code',         '`'],
-    link:  ['[',       'label',        '](https://)'],
-    quote: ['\n> ',    'a quoted line','\n'],
-    list:  ['\n- ',    'a point',      '\n'],
-    block: ['\n```\n', 'code here',    '\n```\n']
+    h2:    ['\n## ',   'Heading',           '\n\n'],
+    b:     ['**',      'bold text',         '**'],
+    i:     ['*',       'italic text',       '*'],
+    code:  ['`',       'code',              '`'],
+    link:  ['[',       'label',             '](https://)'],
+    img:   ['![',      'image description', '](https://image-url.com)'],
+    quote: ['\n> ',    'a quoted line',     '\n'],
+    list:  ['\n- ',    'a point',           '\n'],
+    block: ['\n```\n', 'code here',         '\n```\n']
   };
   document.querySelectorAll('[data-md]').forEach(btn => btn.addEventListener('click', ()=>{
     const [pre, ph, post] = MD[btn.dataset.md];
@@ -835,18 +891,23 @@ function bindEditor(){
   $('#signOut').addEventListener('click', async ()=>{
     try{ await auth.signOut(); toast('Signed out.'); }catch(e){ toast(e.message, 'err'); }
   });
+  updateCovPrev();
   renderPreview();
 }
 
 function renderPreview(){
   const pv = $('#pvBody'); if(!pv) return;
   const f = state.form;
-  const has = (f.body || '').trim().length > 0;
-  pv.innerHTML = has ? mdToHtml(f.body) : '';
+  const hasBody = (f.body || '').trim().length > 0;
+  const cover = (f.coverImage || '').trim();
+  const has = hasBody || cover;
+  pv.innerHTML =
+    (cover ? `<img class="cover" src="${esc(cover)}" alt="" onerror="this.remove()">` : '') +
+    (hasBody ? mdToHtml(f.body) : '');
   $('#pvEmpty').style.display = has ? 'none' : 'block';
   const w = wordCount(f.body), m = Math.max(1, Math.round(w/220));
   $('#edStats').textContent  = `${w} word${w===1?'':'s'} · ${m} min read`;
-  $('#pvStats').textContent  = has ? `${m} min read` : '';
+  $('#pvStats').textContent  = hasBody ? `${m} min read` : '';
 }
 
 async function saveArticle(){
@@ -860,6 +921,7 @@ async function saveArticle(){
   const data = {
     title: f.title.trim(),
     body: f.body,
+    coverImage: (f.coverImage || '').trim(),
     sourceUrl: (f.sourceUrl || '').trim(),
     tags: parseTags(f.tags),
     published: !!f.published,
@@ -903,7 +965,7 @@ function refreshAdminList(){
     state.articles.map(a => `
     <div class="erow">
       <div>
-        <div class="et" data-edit="${a.id}">${esc(a.title)}</div>
+        <div class="et" data-edit="${a.id}">${a.coverImage ? `<img class="etthumb" src="${esc(a.coverImage)}" alt="" onerror="this.remove()">` : ''}${esc(a.title)}</div>
         <div class="em">${fmtDate(a.createdAt)} · ${readMin(a.body)} min · ${(a.tags||[]).map(t=>'#'+esc(t)).join(' ')}</div>
       </div>
       <span class="status ${a.published?'live':'draft'}">${a.published?'live':'draft'}</span>
@@ -920,7 +982,7 @@ function refreshAdminList(){
 function loadForEdit(id){
   const a = state.articles.find(x => x.id === id); if(!a) return;
   state.editingId = id;
-  state.form = { title:a.title||'', body:a.body||'', sourceUrl:a.sourceUrl||'', tags:(a.tags||[]).join(', '), published:!!a.published };
+  state.form = { title:a.title||'', body:a.body||'', coverImage:a.coverImage||'', sourceUrl:a.sourceUrl||'', tags:(a.tags||[]).join(', '), published:!!a.published };
   renderAdmin();
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -950,14 +1012,12 @@ async function doDelete(id){
 }
 
 /* ============================================================
-   SETUP SCREEN (shown until the config is pasted in,
-   or if the pasted config made Firebase refuse to start)
+   SETUP SCREEN
    ============================================================ */
 function renderSetup(){
   document.title = 'Setup — '+SITE.name;
   app.innerHTML = `<div class="setup view">
     <header class="masthead">
-      <div class="mast-row"><span>${esc(SITE.kicker)}</span><span>SETUP</span></div>
       <div class="brand"><h1>${brandHTML()}</h1><p>${esc(SITE.tagline)}</p></div>
     </header>
     <h2>${initError ? 'Firebase refused to start.' : 'Three steps before the first post.'}</h2>

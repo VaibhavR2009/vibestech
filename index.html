@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/log</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23FAF7F1'/><path d='M20 6 L12 26' stroke='%231D6A4C' stroke-width='5'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --paper:#FAF7F1; --paper2:#F1ECE1; --ink:#191712; --ink2:#635E50;
+    --line:#E4DCCC; --accent:#1D6A4C; --accent-deep:#14523A;
+    --accent-tint:rgba(29,106,76,.08); --danger:#A6391F;
+    --code-bg:#1B1914; --code-ink:#EDE7D8;
+    --serif:'Newsreader',Georgia,serif;
+    --sans:'Space Grotesk','Segoe UI',sans-serif;
+    --mono:'JetBrains Mono','Courier New',monospace;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:var(--paper)}
+  a{color:inherit}
+  button{font-family:inherit}
+  *{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+
+  #bar{position:fixed;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:0 50%;z-index:60}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+  .view{animation:rise .45s cubic-bezier(.22,.7,.3,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  /* ---------- masthead ---------- */
+  .masthead{border-top:3px solid var(--ink);margin-top:28px}
+  .mast-row{display:flex;justify-content:space-between;gap:16px;padding:11px 2px;border-bottom:1px solid var(--line);
+    font:500 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+  .brand{padding:34px 0 28px;border-bottom:1px solid var(--ink)}
+  .brand h1{font:700 clamp(52px,9vw,86px)/0.95 var(--sans);letter-spacing:-.03em}
+  .brand h1 .sl{color:var(--accent)}
+  .brand p{margin-top:11px;font:italic 400 18px/1.4 var(--serif);color:var(--ink2)}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:15px 2px;border-bottom:1px solid var(--line)}
+  .search{flex:1 1 220px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);padding:6px 2px;transition:border-color .2s}
+  .search:focus-within{border-color:var(--accent)}
+  .search svg{width:14px;height:14px;color:var(--ink2);flex:none}
+  .search input{flex:1;border:0;background:none;font:400 13px var(--mono);color:var(--ink);padding:2px 0}
+  .search input:focus{outline:none}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:8px 13px;
+    border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink2);cursor:pointer;transition:.15s}
+  .chip:hover{border-color:var(--ink);color:var(--ink)}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+  /* ---------- featured + index rows ---------- */
+  .section-label{display:flex;justify-content:space-between;padding:16px 2px 12px;
+    font:600 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+  .featured{padding:10px 2px 42px}
+  .kicker{display:inline-flex;align-items:center;gap:9px;font:600 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  .kicker::before{content:"";width:7px;height:7px;background:var(--accent)}
+  .featured h2{font:600 clamp(28px,4.6vw,42px)/1.15 var(--serif);letter-spacing:-.01em;margin:16px 0 13px;cursor:pointer;max-width:26ch}
+  .featured h2:hover{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:3px;text-underline-offset:7px}
+  .excerpt{font:400 17px/1.65 var(--serif);color:var(--ink2);max-width:68ch}
+  .readlink{display:inline-flex;align-items:center;gap:8px;margin-top:22px;font:600 11px var(--mono);
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-decoration:none;
+    border-bottom:1px solid var(--ink);padding-bottom:4px;transition:.2s}
+  .readlink svg{width:13px;height:13px;transition:transform .2s}
+  .readlink:hover{color:var(--accent);border-color:var(--accent)}
+  .readlink:hover svg{transform:translate(3px,-3px)}
+  .tags{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}
+  .tag{font:500 10.5px var(--mono);letter-spacing:.05em;color:var(--accent);cursor:pointer;background:none;border:0;padding:0}
+  .tag:hover{text-decoration:underline}
+  .row{display:grid;grid-template-columns:112px 1fr auto;gap:18px;align-items:baseline;
+    padding:19px 6px 19px 4px;border-bottom:1px solid var(--line);position:relative;cursor:pointer;transition:background .2s}
+  .row::before{content:"";position:absolute;left:-6px;top:0;bottom:0;width:2px;background:var(--accent);transform:scaleY(0);transition:transform .25s}
+  .row:hover{background:var(--accent-tint)}
+  .row:hover::before{transform:scaleY(1)}
+  .row .date{font:500 11px var(--mono);letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;padding-top:4px}
+  .row .title{font:500 18px/1.35 var(--sans)}
+  .rt{display:flex;align-items:center;gap:8px;font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);padding-top:6px}
+  .rt svg{width:14px;height:14px;opacity:0;transform:translate(-6px,6px);transition:.25s;color:var(--accent)}
+  .row:hover .rt svg{opacity:1;transform:none}
+
+  /* ---------- reader ---------- */
+  .reader{max-width:730px;margin:0 auto;padding:44px 22px 90px}
+  .backlink{display:inline-flex;align-items:center;gap:8px;font:500 11px var(--mono);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink2);text-decoration:none;margin-bottom:36px;transition:.2s}
+  .backlink:hover{color:var(--accent)}
+  .backlink svg{width:13px;height:13px}
+  .article-head h1{font:600 clamp(32px,5.4vw,48px)/1.12 var(--serif);letter-spacing:-.012em;margin-bottom:18px}
+  .art-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+  .source-box{display:flex;align-items:center;gap:10px;margin:26px 0 0;padding:13px 16px;border:1px solid var(--line);
+    font:400 12px var(--mono);color:var(--ink2);background:var(--paper2)}
+  .source-box svg{width:13px;height:13px;flex:none;color:var(--accent)}
+  .source-box a{color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .source-box a:hover{text-decoration:underline}
+
+  .prose{margin-top:32px;border-top:1px solid var(--line);padding-top:34px}
+  .prose p{font:400 17.5px/1.75 var(--serif);margin:0 0 1.15em}
+  .prose h2{font:600 24px/1.25 var(--sans);letter-spacing:-.01em;margin:1.9em 0 .7em}
+  .prose h3{font:600 19px/1.3 var(--sans);margin:1.7em 0 .6em}
+  .prose h4{font:600 15.5px/1.3 var(--sans);margin:1.5em 0 .5em}
+  .prose h2:first-child,.prose h3:first-child,.prose h4:first-child{margin-top:0}
+  .prose a{color:var(--accent);text-decoration:underline;text-decoration-color:rgba(29,106,76,.4);text-underline-offset:3px}
+  .prose a:hover{text-decoration-color:var(--accent)}
+  .prose ul,.prose ol{margin:0 0 1.15em;padding-left:1.35em}
+  .prose li{font:400 17px/1.65 var(--serif);margin:.35em 0}
+  .prose li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+  .prose blockquote{border-left:2px solid var(--accent);padding:2px 0 2px 20px;margin:1.4em 0;
+    font:italic 400 18.5px/1.7 var(--serif);color:var(--ink2)}
+  .prose code{font:500 .84em var(--mono);background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:2px 6px;color:var(--ink)}
+  .prose figure.code{position:relative;margin:1.6em 0}
+  .prose figure.code pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:20px 22px;overflow:auto;font:400 13px/1.65 var(--mono)}
+  .prose figure.code pre code{background:none;border:0;padding:0;color:inherit;font-size:1em}
+  .prose figure.code::after{content:attr(data-lang);position:absolute;top:10px;right:13px;
+    font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(237,231,216,.45)}
+  .prose img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin:.4em 0}
+  .prose hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .endmark{display:flex;justify-content:center;margin-top:60px;color:var(--accent);font-size:11px}
+
+  /* ---------- admin bar + editor ---------- */
+  .adminbar{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+  .adminbar .inner{max-width:1060px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .ab-brand{font:700 16px var(--sans);letter-spacing:-.02em}
+  .ab-brand .sl{color:var(--accent)}
+  .ab-note{font:600 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);border:1px solid var(--line);padding:4px 9px;border-radius:999px}
+  .ab-spacer{flex:1}
+  .ab-user{font:400 11.5px var(--mono);color:var(--ink2);overflow:hidden;text-overflow:ellipsis;max-width:220px}
+  .linkbtn{background:none;border:0;font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:6px 2px;transition:.2s}
+  .linkbtn:hover{color:var(--accent)}
+  .linkbtn svg{width:13px;height:13px}
+
+  .admin{max-width:1060px;margin:0 auto;padding:34px 22px 90px}
+  .admin-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+  .admin-head h2{font:600 26px var(--sans);letter-spacing:-.01em}
+  .mode-pill{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:4px 10px;border-radius:999px}
+
+  .editor{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .field{margin-bottom:22px}
+  .field label{display:block;font:600 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);margin-bottom:7px}
+  .field input{width:100%;background:none;border:0;border-bottom:1px solid var(--line);font:500 19px/1.3 var(--sans);color:var(--ink);padding:8px 1px}
+  .field input:focus{outline:none;border-bottom-color:var(--accent)}
+  .field input.mono-input{font:400 12.5px var(--mono)}
+  .field .ferr{font:400 11px var(--mono);color:var(--danger);margin-top:6px;display:none}
+  .field.err input{border-bottom-color:var(--danger)}
+  .field.err .ferr{display:block}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+
+  .metarow{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:6px 0 16px;padding:13px 16px;border:1px solid var(--line);border-radius:6px;background:var(--paper2)}
+  .switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+  .switch input{display:none}
+  .switch .track{width:36px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+  .switch .track::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--paper);transition:transform .2s}
+  .switch input:checked + .track{background:var(--accent)}
+  .switch input:checked + .track::after{transform:translateX(16px)}
+  .sw-label{font:600 10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+  .estats{margin-left:auto;font:400 11px var(--mono);color:var(--ink2)}
+
+  .mdtools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .mini{font:500 11px var(--mono);padding:6px 10px;border:1px solid var(--line);background:none;border-radius:4px;color:var(--ink2);cursor:pointer;transition:.15s}
+  .mini:hover{border-color:var(--ink);color:var(--ink)}
+  #bodyField{width:100%;min-height:430px;background:none;border:1px solid var(--line);border-radius:6px;padding:18px;
+    font:400 13.5px/1.7 var(--mono);color:var(--ink);resize:vertical;tab-size:2}
+  #bodyField:focus{outline:none;border-color:var(--accent)}
+
+  .actions{display:flex;align-items:center;gap:18px;margin-top:18px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;font:600 11.5px var(--mono);
+    letter-spacing:.14em;text-transform:uppercase;padding:14px 26px;border-radius:4px;transition:background .2s}
+  .btn svg{width:14px;height:14px}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover:not(:disabled){background:var(--accent)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .cancellink{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);background:none;border:0;cursor:pointer}
+  .cancellink:hover{color:var(--danger)}
+  .kbdhint{font:400 10.5px var(--mono);color:var(--ink2);margin-left:auto}
+
+  .preview-pane{position:sticky;top:78px;max-height:calc(100vh - 98px);overflow:auto;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+  .pane-head{position:sticky;top:0;background:var(--paper);z-index:2;display:flex;justify-content:space-between;gap:12px;
+    padding:13px 20px;border-bottom:1px solid var(--line);font:600 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+  .pane-body{padding:6px 26px 30px}
+  .pane-body .prose{margin-top:22px;padding-top:14px;border-top:0}
+  .pane-empty{font:italic 400 16px var(--serif);color:var(--ink2);padding:26px 0}
+
+  .entry-list{margin-top:64px}
+  .erow{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;padding:15px 4px;border-bottom:1px solid var(--line)}
+  .erow .et{font:500 15.5px var(--sans);cursor:pointer;transition:.15s}
+  .erow .et:hover{color:var(--accent)}
+  .erow .em{font:400 10.5px var(--mono);color:var(--ink2);margin-top:5px}
+  .status{font:600 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:3px}
+  .status.live{color:var(--accent);background:var(--accent-tint)}
+  .status.draft{color:var(--ink2);background:var(--paper2)}
+  .iconbtn{width:32px;height:32px;display:grid;place-items:center;background:none;border:1px solid transparent;border-radius:4px;color:var(--ink2);cursor:pointer;transition:.15s}
+  .iconbtn svg{width:15px;height:15px}
+  .iconbtn:hover{color:var(--ink);border-color:var(--line)}
+  .iconbtn.danger:hover{color:var(--danger);border-color:var(--danger)}
+  .iconbtn.confirm{width:auto;padding:0 10px;font:600 10px var(--mono);letter-spacing:.08em;color:var(--paper);background:var(--danger);border-color:var(--danger)}
+
+  /* ---------- auth ---------- */
+  .auth{max-width:400px;margin:9vh auto 0;padding:0 22px}
+  .auth .brandmark{font:700 26px var(--sans)}
+  .auth .brandmark .sl{color:var(--accent)}
+  .auth h2{font:600 30px var(--serif);letter-spacing:-.01em;margin:28px 0 6px}
+  .auth .sub{font:italic 400 15.5px var(--serif);color:var(--ink2);margin-bottom:34px}
+  .auth .field{margin-bottom:20px}
+  .auth-actions{margin-top:26px;display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+  .auth-toggle{font:400 12px var(--mono);color:var(--ink2);background:none;border:0;cursor:pointer;text-align:left;padding:0}
+  .auth-toggle:hover{color:var(--accent)}
+  .auth-err{font:400 12px var(--mono);color:var(--danger);display:none}
+  .backtosite{margin-top:46px}
+
+  /* ---------- states, setup, toast, footer ---------- */
+  .statebox{padding:70px 0;text-align:center}
+  .statebox svg{width:26px;height:26px;color:var(--ink);opacity:.3;margin-bottom:16px}
+  .statebox h3{font:italic 500 22px var(--serif);margin-bottom:10px}
+  .statebox p{font:400 12.5px/1.8 var(--mono);color:var(--ink2)}
+  .statebox a{color:var(--accent)}
+  .loading{padding:64px 0;text-align:center;font:500 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  .setup{max-width:660px;margin:0 auto;padding:0 22px 90px}
+  .setup h2{font:600 30px var(--serif);margin:6px 0 30px}
+  .step{display:grid;grid-template-columns:36px 1fr;gap:16px;padding:22px 0;border-top:1px solid var(--line)}
+  .step .n{font:600 12px var(--mono);color:var(--accent);letter-spacing:.1em;padding-top:3px}
+  .step h3{font:600 16px var(--sans);margin-bottom:7px}
+  .step p{font:400 14.5px/1.7 var(--serif);color:var(--ink2)}
+  .step a{color:var(--accent)}
+  .step code,.statebox code{font:500 .85em var(--mono);background:var(--paper2);border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--ink)}
+  .codebox{margin-top:12px;background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:16px 18px;font:400 11.5px/1.7 var(--mono);overflow:auto}
+
+  #toasts{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;z-index:100;align-items:center}
+  .toast{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);font:500 12.5px var(--mono);
+    padding:12px 18px;border-radius:6px;box-shadow:0 10px 30px rgba(25,23,18,.22);animation:toastIn .3s cubic-bezier(.2,.8,.3,1);max-width:90vw}
+  .toast svg{width:14px;height:14px;color:#8CCBAB;flex:none}
+  .toast.err{background:var(--danger)}
+  .toast.err svg{color:#F6D9CE}
+  .toast.out{animation:toastOut .3s forwards}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
+
+  .footer{border-top:1px solid var(--ink);margin-top:72px;padding:18px 2px 36px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    font:400 11px var(--mono);letter-spacing:.06em;color:var(--ink2)}
+  .footer a{color:var(--ink2);display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:.2s}
+  .footer a:hover{color:var(--accent)}
+  .footer a svg{width:12px;height:12px}
+
+  @media(max-width:1000px){
+    .editor{grid-template-columns:1fr;gap:28px}
+    .preview-pane{position:static;max-height:none}
+  }
+  @media(max-width:640px){
+    .masthead{margin-top:18px}
+    .brand{padding:26px 0 20px}
+    .row{grid-template-columns:1fr;gap:8px}
+    .rt{padding-top:0}
+    .frow{grid-template-columns:1fr}
+    .ab-user{display:none}
+    .erow{grid-template-columns:1fr auto}
+    .kbdhint{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<main id="app"></main>
+<div id="toasts"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+/* ============================================================
+   ① CONFIG — the only part you need to touch.
+   Create a project at console.firebase.google.com, register a
+   Web app, and paste its config over these placeholders.
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            "PASTE_YOUR_API_KEY",
+  authDomain:        "PASTE_YOUR_PROJECT.firebaseapp.com",
+  projectId:         "PASTE_YOUR_PROJECT_ID",
+  storageBucket:     "PASTE_YOUR_PROJECT.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId:             "PASTE_YOUR_APP_ID"
+};
+
+/* Site identity — rename freely */
+const SITE = {
+  name: "/log",
+  tagline: "Notes on technology, kept & catalogued.",
+  kicker: "TECH · FIELD NOTES"
+};
+/* ============================================================ */
+
+const app  = document.getElementById('app');
+const bar  = document.getElementById('bar');
+const CONFIGURED = FIREBASE_CONFIG.apiKey && !/PASTE_|YOUR_/.test(FIREBASE_CONFIG.apiKey);
+
+const state = {
+  user:null, authResolved:false,
+  articles:[], loaded:false, loadError:null,
+  tag:null, query:'',
+  editingId:null, form:null
+};
+
+let db=null, auth=null;
+if(CONFIGURED && window.firebase){
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db   = firebase.firestore();
+  auth = firebase.auth();
+  auth.onAuthStateChanged(u => { state.user = u; state.authResolved = true; if(location.hash.startsWith('#/admin')) route(); });
+  setTimeout(()=>{ state.authResolved = true; if(location.hash.startsWith('#/admin')) route(); }, 3000); // CDN fallback
+} else { state.authResolved = true; }
+
+/* ---------- small helpers ---------- */
+const $    = s => document.querySelector(s);
+const esc  = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const icons= () => { if(window.lucide) lucide.createIcons(); };
+const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+const loadingHTML = (label='loading') => `<div class="loading">${esc(label)}…</div>`;
+
+function brandHTML(){
+  return SITE.name.startsWith('/')
+    ? `<span class="sl">/</span>${esc(SITE.name.slice(1))}`
+    : esc(SITE.name);
+}
+function hostnameOf(u){
+  try{ const x = new URL(u); return x.hostname.replace(/^www\./,'') + (x.pathname !== '/' ? x.pathname : ''); }
+  catch{ return u; }
+}
+function plainText(md){
+  return String(md||'')
+    .replace(/```[\s\S]*?```/g,' ')
+    .replace(/`([^`]+)`/g,'$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g,' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+    .replace(/^#{1,4}\s+/gm,'')
+    .replace(/^>\s?/gm,'')
+    .replace(/^\s*[-*+]\s+/gm,'')
+    .replace(/[*_~]/g,'')
+    .replace(/\s+/g,' ').trim();
+}
+const wordCount = md => { const t = plainText(md); return t ? t.split(/\s+/).length : 0; };
+const readMin   = md => Math.max(1, Math.round(wordCount(md)/220));
+function excerptOf(md,n=230){
+  const t = plainText(md);
+  if(t.length <= n) return t;
+  const cut = t.lastIndexOf(' ', n);
+  return t.slice(0, cut > 0 ? cut : n) + ' …';
+}
+function parseTags(str){
+  const seen = new Set();
+  return String(str||'').split(',').map(t => t.trim().toLowerCase().replace(/^#/,'').replace(/\s+/g,'-').replace(/[^\w-]/g,''))
+    .filter(t => t && !seen.has(t) && seen.add(t))
+    .slice(0,6);
+}
+
+/* ---------- tiny markdown renderer ---------- */
+function mdToHtml(src){
+  const safeUrl = u => { u = (u||'').trim(); return /^(https?:\/\/|mailto:|\/|#)/i.test(u) ? u : '#'; };
+  const lines = esc(String(src||'').replace(/\r\n?/g,'\n')).split('\n');
+
+  const inline = t => {
+    const codes = [];
+    t = t.replace(/`([^`\n]+)`/g,(m,c)=>{ codes.push(c); return '\x00'+(codes.length-1)+'\x00'; });
+    t = t.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,(m,alt,u)=>`<img src="${safeUrl(u)}" alt="${alt}">`);
+    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,txt,u)=>`<a href="${safeUrl(u)}" target="_blank" rel="noopener">${txt}</a>`);
+    t = t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    t = t.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+    t = t.replace(/(^|\W)_([^_\n]+)_(?=\W|$)/g,'$1<em>$2</em>');
+    t = t.replace(/~~([^~]+)~~/g,'<del>$1</del>');
+    return t.replace(/\x00(\d+)\x00/g,(m,ix)=>'<code>'+codes[+ix]+'</code>');
+  };
+
+  const out = []; let i = 0;
+  const SPECIAL = /^(```|#{1,4}\s|>\s?|\s*[-*+]\s|\s*\d+[.)]\s|(-{3,}|\*{3,})\s*$)/;
+  while(i < lines.length){
+    const line = lines[i];
+    if(/^```/.test(line)){                                   // fenced code block
+      const lang = line.slice(3).trim(); i++;
+      const buf = [];
+      while(i < lines.length && !/^```/.test(lines[i])){ buf.push(lines[i]); i++; }
+      i++;
+      out.push(`<figure class="code"${lang?` data-lang="${lang}"`:''}><pre><code>${buf.join('\n')}</code></pre></figure>`);
+      continue;
+    }
+    let m;
+    if((m = line.match(/^(#{1,4})\s+(.*)/))){                // heading
+      const lv = Math.min(m[1].length + 1, 4);
+      out.push(`<h${lv}>${inline(m[2])}</h${lv}>`); i++; continue;
+    }
+    if(/^(-{3,}|\*{3,})\s*$/.test(line)){ out.push('<hr>'); i++; continue; }
+    if(/^>\s?/.test(line)){                                  // blockquote
+      const buf = [];
+      while(i < lines.length && /^>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^>\s?/,'')); i++; }
+      out.push(`<blockquote>${inline(buf.join('<br>'))}</blockquote>`); continue;
+    }
+    if(/^\s*[-*+]\s+/.test(line)){                           // unordered list
+      const items = [];
+      while(i < lines.length && /^\s*[-*+]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*[-*+]\s+/,''))+'</li>'); i++; }
+      out.push('<ul>'+items.join('')+'</ul>'); continue;
+    }
+    if(/^\s*\d+[.)]\s+/.test(line)){                         // ordered list
+      const items = [];
+      while(i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>'); i++; }
+      out.push('<ol>'+items.join('')+'</ol>'); continue;
+    }
+    if(line.trim() === ''){ i++; continue; }
+    const buf = [line]; i++;                                 // paragraph
+    while(i < lines.length && lines[i].trim() !== '' && !SPECIAL.test(lines[i])){ buf.push(lines[i]); i++; }
+    out.push('<p>'+buf.map(inline).join('<br>')+'</p>');
+  }
+  return out.join('\n');
+}
+
+/* ---------- toasts ---------- */
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='err' ? ' err' : '');
+  el.innerHTML = `<i data-lucide="${type==='err'?'triangle-alert':'check'}"></i><span>${esc(msg)}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  icons();
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(), 320); }, 2600);
+}
+
+/* ---------- data ---------- */
+async function loadArticles(force=false){
+  if(state.loaded && !force) return;
+  state.loadError = null;
+  try{
+    const snap = await db.collection('articles').orderBy('createdAt','desc').limit(500).get();
+    state.articles = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    state.loaded = true;
+  }catch(e){
+    console.error(e);
+    state.loadError = (e.code === 'permission-denied') ? 'permission' : 'network';
+  }
+}
+function ptOf(a){ if(!a._pt) a._pt = plainText(a.body).toLowerCase(); return a._pt; }
+
+/* ============================================================
+   BLOG — index
+   ============================================================ */
+async function renderIndex(){
+  document.title = `${SITE.name} — ${SITE.tagline}`;
+  if(!CONFIGURED){ renderSetup(); return; }
+  const myHash = location.hash;
+  app.innerHTML = `
+  <div class="wrap view">
+    <header class="masthead">
+      <div class="mast-row"><span>${esc(SITE.kicker)}</span><span>${new Date().getFullYear()} — VOL. 01</span></div>
+      <div class="brand">
+        <h1>${brandHTML()}</h1>
+        <p>${esc(SITE.tagline)}</p>
+      </div>
+    </header>
+    <div id="toolbarSlot"></div>
+    <div id="list">${loadingHTML('opening the archive')}</div>
+    <footer class="footer">
+      <span>© ${new Date().getFullYear()} ${esc(SITE.name)} — kept on firebase</span>
+      <a href="#/admin">publisher <i data-lucide="arrow-right"></i></a>
+    </footer>
+  </div>`;
+  await loadArticles(true);
+  if(location.hash !== myHash) return;
+  if(state.loadError){ $('#list').innerHTML = loadErrorHTML(); bindRetry(); icons(); return; }
+  buildToolbar(); renderList(); icons();
+}
+
+function buildToolbar(){
+  const freq = {};
+  state.articles.filter(a=>a.published).forEach(a => (a.tags||[]).forEach(t => freq[t]=(freq[t]||0)+1));
+  const tags = Object.keys(freq).sort((a,b)=> freq[b]-freq[a] || a.localeCompare(b));
+  $('#toolbarSlot').innerHTML = `
+  <div class="toolbar">
+    <div class="search"><i data-lucide="search"></i><input id="q" type="text" placeholder="search the index…" value="${esc(state.query)}"></div>
+    <div class="chips">
+      <button class="chip ${state.tag?'':'active'}" data-tag="">all</button>
+      ${tags.map(t=>`<button class="chip ${state.tag===t?'active':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}
+    </div>
+  </div>`;
+  $('#q').addEventListener('input', e => { state.query = e.target.value; renderList(); });
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', ()=>{
+    state.tag = c.dataset.tag || null;
+    document.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x===c));
+    renderList();
+  }));
+}
+
+function renderList(){
+  const q = state.query.trim().toLowerCase();
+  let items = state.articles.filter(a => a.published);
+  if(state.tag) items = items.filter(a => (a.tags||[]).includes(state.tag));
+  if(q) items = items.filter(a =>
+    (a.title||'').toLowerCase().includes(q) ||
+    (a.tags||[]).some(t => t.includes(q)) ||
+    ptOf(a).includes(q));
+
+  if(!items.length){ $('#list').innerHTML = emptyIndexHTML(); bindTags(); icons(); return; }
+
+  const showFeatured = !state.tag && !q;
+  const featured = showFeatured ? items[0] : null;
+  const rows = showFeatured ? items.slice(1) : items;
+  const tagBtns = ts => (ts||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join('');
+
+  let html = '';
+  if(featured){
+    html += `
+    <section class="featured">
+      <span class="kicker">latest — ${fmtDate(featured.createdAt)}</span>
+      <h2 data-open="${featured.id}">${esc(featured.title)}</h2>
+      <p class="excerpt">${esc(excerptOf(featured.body))}</p>
+      <div class="tags" style="margin-top:16px">${tagBtns(featured.tags)}</div>
+      <a class="readlink" href="#/read/${featured.id}">read the piece <i data-lucide="arrow-right"></i></a>
+    </section>`;
+  }
+  html += `<div class="section-label"><span>index</span><span>${items.length} ${items.length===1?'entry':'entries'}</span></div>`;
+  html += rows.map(a => `
+    <article class="row" data-open="${a.id}">
+      <span class="date">${fmtDate(a.createdAt)}</span>
+      <div>
+        <div class="title">${esc(a.title)}</div>
+        ${(a.tags||[]).length ? `<div class="tags">${tagBtns(a.tags)}</div>` : ''}
+      </div>
+      <div class="rt"><span>${readMin(a.body)} min</span><i data-lucide="arrow-up-right"></i></div>
+    </article>`).join('');
+
+  $('#list').innerHTML = html;
+  document.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', e => {
+    if(e.target.closest('.tag')) return;
+    location.hash = '#/read/' + el.dataset.open;
+  }));
+  bindTags(); icons();
+}
+
+function emptyIndexHTML(){
+  const filtered = state.tag || state.query;
+  const hasDrafts = state.articles.some(a => !a.published);
+  return `<div class="statebox">
+    <i data-lucide="book-open"></i>
+    <h3>${filtered ? 'Nothing matches that.' : 'The index is empty.'}</h3>
+    <p>${filtered ? 'Try a different tag or search.'
+                  : hasDrafts ? 'You have drafts waiting — publish them from the <a href="#/admin">publisher</a>.'
+                              : 'Publish the first entry from the <a href="#/admin">publisher</a>.'}</p>
+  </div>`;
+}
+function loadErrorHTML(){
+  return `<div class="statebox">
+    <i data-lucide="cloud-off"></i>
+    <h3>Couldn't reach the archive.</h3>
+    <p>${state.loadError==='permission'
+      ? 'Firestore is blocking reads — set your rules to allow public <code>read</code> on <code>/articles</code>.'
+      : 'Check your connection (or the Firebase config) and try again.'}</p>
+    <button class="btn btn-primary" style="margin-top:20px" id="retry"><i data-lucide="rotate-ccw"></i> retry</button>
+  </div>`;
+}
+function bindRetry(){ const r = $('#retry'); if(r) r.addEventListener('click', ()=>{ state.loaded=false; renderIndex(); }); }
+function bindTags(){
+  document.querySelectorAll('.tag').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); gotoTag(b.dataset.tag); }));
+}
+function gotoTag(t){
+  state.tag = t; state.query = '';
+  if(location.hash && location.hash !== '#/'){ location.hash = '#/'; }
+  else { renderIndex(); }
+}
+
+/* ============================================================
+   BLOG — reader
+   ============================================================ */
+async function renderReader(id){
+  if(!CONFIGURED){ renderSetup(); return; }
+  const myHash = location.hash;
+  await loadArticles();
+  if(location.hash !== myHash) return;
+  const a = state.articles.find(x => x.id === id);
+
+  if(!a || (!a.published && !state.user)){
+    document.title = 'Not found — '+SITE.name;
+    app.innerHTML = `<div class="reader view">
+      <a class="backlink" href="#/"><i data-lucide="arrow-left"></i> back to index</a>
+      <div class="statebox"><i data-lucide="file-question"></i><h3>This entry doesn't exist.</h3><p>It may have been removed, or the link is wrong.</p></div>
+    </div>`; icons(); return;
+  }
+
+  document.title = `${a.title} — ${SITE.name}`;
+  app.innerHTML = `<article class="reader view">
+    <a class="backlink" href="#/"><i data-lucide="arrow-left"></i> back to index</a>
+    <header class="article-head">
+      <h1>${esc(a.title)}</h1>
+      <div class="art-meta">
+        <span>${fmtDate(a.createdAt)}</span><span>·</span><span>${readMin(a.body)} min read</span>
+        ${(a.tags||[]).length ? `<span>·</span><span>${a.tags.map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join(' ')}</span>` : ''}
+      </div>
+      ${a.sourceUrl ? `<div class="source-box"><i data-lucide="external-link"></i><span>source —</span>
+        <a href="${esc(a.sourceUrl)}" target="_blank" rel="noopener">${esc(hostnameOf(a.sourceUrl))}</a></div>` : ''}
+      ${!a.published ? `<div class="source-box" style="border-style:dashed"><i data-lucide="eye-off"></i><span>DRAFT — only visible to you while signed in.</span></div>` : ''}
+    </header>
+    <div class="prose">${mdToHtml(a.body)}</div>
+    <div class="endmark">◆</div>
+    ${a.sourceUrl ? `<div style="text-align:center;margin-top:26px"><a class="readlink" style="border:0" href="${esc(a.sourceUrl)}" target="_blank" rel="noopener">read the original <i data-lucide="arrow-up-right"></i></a></div>` : ''}
+  </article>`;
+  bindTags(); icons();
+
+  scrollHandler = onScroll;                       // reading progress
+  window.addEventListener('scroll', scrollHandler, {passive:true});
+  onScroll();
+}
+
+/* ============================================================
+   PUBLISHER — the separate posting site (#/admin)
+   ============================================================ */
+const AUTH_ERRS = {
+  'auth/invalid-email':'That email address looks malformed.',
+  'auth/missing-password':'Enter your password.',
+  'auth/weak-password':'Password should be at least 6 characters.',
+  'auth/email-already-in-use':'An account already exists for this email — sign in instead.',
+  'auth/wrong-password':'Wrong password for this account.',
+  'auth/user-not-found':'No account found for this email.',
+  'auth/invalid-credential':'Email or password is incorrect.',
+  'auth/too-many-requests':'Too many attempts — wait a moment and try again.',
+  'auth/network-request-failed':'Network error — check your connection.',
+  'auth/operation-not-allowed':'Enable Email/Password sign-in in your Firebase console first.'
+};
+
+function renderAdminGate(){
+  if(!CONFIGURED){ renderSetup(); return; }
+  if(!state.authResolved){
+    app.innerHTML = `<div class="admin view">${loadingHTML('checking access')}</div>`; return;
+  }
+  if(!state.user){ renderAuth(); return; }
+  renderAdmin();
+}
+
+function renderAuth(){
+  document.title = 'Publisher — '+SITE.name;
+  app.innerHTML = `<div class="auth view">
+    <div class="brandmark">${brandHTML()}</div>
+    <span class="ab-note" style="margin-top:14px;display:inline-block">publisher</span>
+    <h2>The desk is locked.</h2>
+    <p class="sub">Sign in with your Firebase account to write, edit &amp; publish.</p>
+    <div class="field"><label>email</label><input id="aEmail" type="email" autocomplete="email" placeholder="you@domain.com"></div>
+    <div class="field"><label>password</label><input id="aPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="auth-actions">
+      <button class="btn btn-primary" id="aGo"><i data-lucide="log-in"></i><span id="aGoLabel">sign in</span></button>
+      <button class="auth-toggle" id="aMode">first time here? <u>create an account</u> instead</button>
+      <div class="auth-err" id="aErr"></div>
+    </div>
+    <a class="backlink backtosite" href="#/"><i data-lucide="arrow-left"></i> back to the site</a>
+  </div>`;
+  let mode = 'in';
+  const showErr = m => { const e = $('#aErr'); e.textContent = m; e.style.display = 'block'; };
+  const go = async () => {
+    $('#aErr').style.display = 'none';
+    const email = $('#aEmail').value.trim(), pass = $('#aPass').value;
+    if(!email || !pass){ showErr('Both fields are needed.'); return; }
+    $('#aGo').disabled = true;
+    try{
+      if(mode === 'up') await auth.createUserWithEmailAndPassword(email, pass);
+      else await auth.signInWithEmailAndPassword(email, pass);
+      toast(mode === 'up' ? 'Account created — welcome.' : 'Welcome back.');
+    }catch(e){
+      showErr(AUTH_ERRS[e.code] || (e.message||'').replace('Firebase: ',''));
+      $('#aGo').disabled = false;
+    }
+  };
+  $('#aGo').addEventListener('click', go);
+  [$('#aEmail'),$('#aPass')].forEach(i => i.addEventListener('keydown', e => { if(e.key === 'Enter') go(); }));
+  $('#aMode').addEventListener('click', ()=>{
+    mode = mode === 'in' ? 'up' : 'in';
+    $('#aGoLabel').textContent  = mode === 'in' ? 'sign in' : 'create account';
+    $('#aPass').autocomplete    = mode === 'in' ? 'current-password' : 'new-password';
+    $('#aMode').innerHTML       = mode === 'in' ? 'first time here? <u>create an account</u> instead' : 'already have an account? <u>sign in</u>';
+  });
+  icons();
+}
+
+const freshForm = () => ({ title:'', body:'', sourceUrl:'', tags:'', published:true });
+function startNew(){ state.editingId = null; state.form = freshForm(); }
+
+function renderAdmin(){
+  document.title = 'Publisher — '+SITE.name;
+  const f = state.form || (state.form = freshForm());
+  app.innerHTML = `
+  <div class="adminbar"><div class="inner">
+    <span class="ab-brand">${brandHTML()}</span>
+    <span class="ab-note">publisher</span>
+    <span class="ab-spacer"></span>
+    <span class="ab-user">${esc(state.user.email || '')}</span>
+    <a class="linkbtn" href="#/"><i data-lucide="arrow-left"></i> view site</a>
+    <button class="linkbtn" id="signOut"><i data-lucide="log-out"></i> sign out</button>
+  </div></div>
+  <div class="admin view">
+    <div class="admin-head">
+      <h2>${state.editingId ? 'Edit entry' : 'New entry'}</h2>
+      <span class="mode-pill">${state.editingId ? 'editing' : 'drafting'}</span>
+    </div>
+    <div class="editor">
+      <div class="ed-left">
+        <div class="field" id="fTitle"><label>title</label>
+          <input id="titleField" type="text" placeholder="Name the piece…" value="${esc(f.title)}">
+          <div class="ferr">A title is required.</div>
+        </div>
+        <div class="frow">
+          <div class="field"><label>source url — the original article (optional)</label>
+            <input id="sourceField" class="mono-input" type="text" placeholder="https://original-article.com…" value="${esc(f.sourceUrl)}"></div>
+          <div class="field"><label>tags — comma separated (optional)</label>
+            <input id="tagsField" class="mono-input" type="text" placeholder="rust, infra, ai" value="${esc(f.tags)}"></div>
+        </div>
+        <div class="metarow">
+          <label class="switch"><input id="pubToggle" type="checkbox" ${f.published?'checked':''}><span class="track"></span><span class="sw-label">published</span></label>
+          <span class="estats" id="edStats">0 words · 1 min</span>
+        </div>
+        <div class="mdtools">
+          <button class="mini" data-md="h2">H</button>
+          <button class="mini" data-md="b"><b>B</b></button>
+          <button class="mini" data-md="i"><i>I</i></button>
+          <button class="mini" data-md="code">&lt;/&gt;</button>
+          <button class="mini" data-md="link">link</button>
+          <button class="mini" data-md="quote">quote</button>
+          <button class="mini" data-md="list">list</button>
+          <button class="mini" data-md="block">block</button>
+        </div>
+        <textarea id="bodyField" placeholder="Write in **markdown** — paste content from anywhere.
+The right pane renders it live as you type.">${esc(f.body)}</textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="saveBtn"><i data-lucide="${state.editingId?'check':'send-horizontal'}"></i>${state.editingId?'save changes':'publish entry'}</button>
+          ${state.editingId ? '<button class="cancellink" id="cancelEdit">cancel editing</button>' : ''}
+          <span class="kbdhint">⌘/ctrl + S to save</span>
+        </div>
+      </div>
+      <div class="preview-pane">
+        <div class="pane-head"><span>live preview</span><span id="pvStats"></span></div>
+        <div class="pane-body">
+          <div class="pane-empty" id="pvEmpty">Nothing written yet — the preview appears as you type.</div>
+          <div class="prose" id="pvBody"></div>
+        </div>
+      </div>
+    </div>
+    <div class="entry-list" id="entryWrap"></div>
+  </div>`;
+  bindEditor();
+  refreshAdminList();
+  if(!state.loaded) loadArticles(true).then(refreshAdminList);
+  icons();
+}
+
+function bindEditor(){
+  const f = state.form;
+  const titleF = $('#titleField'), sourceF = $('#sourceField'), tagsF = $('#tagsField'),
+        bodyF = $('#bodyField'),  pubT = $('#pubToggle');
+
+  titleF.addEventListener('input', ()=>{ f.title = titleF.value; $('#fTitle').classList.remove('err'); });
+  sourceF.addEventListener('input', ()=> f.sourceUrl = sourceF.value);
+  tagsF.addEventListener('input',   ()=> f.tags = tagsF.value);
+  pubT.addEventListener('change',  ()=> f.published = pubT.checked);
+  bodyF.addEventListener('input',   ()=>{ f.body = bodyF.value; renderPreview(); });
+
+  const MD = {
+    h2:    ['\n## ',   'Heading',      '\n\n'],
+    b:     ['**',      'bold text',    '**'],
+    i:     ['*',       'italic text',  '*'],
+    code:  ['`',       'code',         '`'],
+    link:  ['[',       'label',        '](https://)'],
+    quote: ['\n> ',    'a quoted line','\n'],
+    list:  ['\n- ',    'a point',      '\n'],
+    block: ['\n```\n', 'code here',    '\n```\n']
+  };
+  document.querySelectorAll('[data-md]').forEach(btn => btn.addEventListener('click', ()=>{
+    const [pre, ph, post] = MD[btn.dataset.md];
+    const s = bodyF.selectionStart, e = bodyF.selectionEnd;
+    const body = bodyF.value.slice(s, e) || ph;
+    bodyF.setRangeText(pre + body + post, s, e);
+    bodyF.selectionStart = s + pre.length;
+    bodyF.selectionEnd   = s + pre.length + body.length;
+    bodyF.focus();
+    bodyF.dispatchEvent(new Event('input', {bubbles:true}));
+  }));
+  bodyF.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      bodyF.setRangeText('  ', bodyF.selectionStart, bodyF.selectionEnd, 'end');
+      bodyF.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+  });
+
+  $('#saveBtn').addEventListener('click', saveArticle);
+  const ce = $('#cancelEdit');
+  if(ce) ce.addEventListener('click', ()=>{ startNew(); renderAdmin(); toast('Back to a fresh draft.'); });
+  $('#signOut').addEventListener('click', async ()=>{
+    try{ await auth.signOut(); toast('Signed out.'); }catch(e){ toast(e.message, 'err'); }
+  });
+  renderPreview();
+}
+
+function renderPreview(){
+  const pv = $('#pvBody'); if(!pv) return;
+  const f = state.form;
+  const has = (f.body || '').trim().length > 0;
+  pv.innerHTML = has ? mdToHtml(f.body) : '';
+  $('#pvEmpty').style.display = has ? 'none' : 'block';
+  const w = wordCount(f.body), m = Math.max(1, Math.round(w/220));
+  $('#edStats').textContent  = `${w} word${w===1?'':'s'} · ${m} min read`;
+  $('#pvStats').textContent  = has ? `${m} min read` : '';
+}
+
+async function saveArticle(){
+  const f = state.form;
+  let ok = true;
+  if(!f.title.trim()){ $('#fTitle').classList.add('err'); ok = false; }
+  if(!f.body.trim()){ toast('The body is empty — nothing to publish.', 'err'); ok = false; }
+  if(!ok) return;
+  const btn = $('#saveBtn'); btn.disabled = true;
+
+  const data = {
+    title: f.title.trim(),
+    body: f.body,
+    sourceUrl: (f.sourceUrl || '').trim(),
+    tags: parseTags(f.tags),
+    published: !!f.published,
+    updatedAt: Date.now(),
+    authorEmail: state.user.email
+  };
+  try{
+    if(state.editingId){
+      await db.collection('articles').doc(state.editingId).update(data);
+      toast('Changes saved.');
+    }else{
+      data.createdAt = Date.now();
+      await db.collection('articles').add(data);
+      toast(data.published ? 'Published — it\u2019s live.' : 'Saved as draft.');
+    }
+    startNew();
+    await loadArticles(true);
+    renderAdmin();
+  }catch(e){
+    btn.disabled = false;
+    console.error(e);
+    toast(e.code === 'permission-denied'
+      ? 'Firestore rejected the write — check your rules (public read, signed-in write).'
+      : 'Save failed — ' + (e.message || 'try again'), 'err');
+  }
+}
+
+function refreshAdminList(){
+  const wrap = $('#entryWrap'); if(!wrap) return;
+  if(state.loadError){
+    wrap.innerHTML = loadErrorHTML().replace('the archive','your entries');
+    const r = $('#retry'); if(r) r.addEventListener('click', ()=>{ state.loaded=false; loadArticles(true).then(refreshAdminList); });
+    icons(); return;
+  }
+  if(!state.articles.length){
+    wrap.innerHTML = `<div class="section-label"><span>your entries</span><span>0 total</span></div>
+      <div class="statebox" style="padding:40px 0"><h3>No entries yet.</h3><p>Everything you write — drafts included — collects here.</p></div>`;
+    icons(); return;
+  }
+  wrap.innerHTML = `<div class="section-label"><span>your entries</span><span>${state.articles.length} total</span></div>` +
+    state.articles.map(a => `
+    <div class="erow">
+      <div>
+        <div class="et" data-edit="${a.id}">${esc(a.title)}</div>
+        <div class="em">${fmtDate(a.createdAt)} · ${readMin(a.body)} min · ${(a.tags||[]).map(t=>'#'+esc(t)).join(' ')}</div>
+      </div>
+      <span class="status ${a.published?'live':'draft'}">${a.published?'live':'draft'}</span>
+      <div style="display:flex;gap:6px">
+        <button class="iconbtn" title="edit" data-edit="${a.id}"><i data-lucide="pencil"></i></button>
+        <button class="iconbtn danger" title="delete" data-del="${a.id}"><i data-lucide="trash-2"></i></button>
+      </div>
+    </div>`).join('');
+  wrap.querySelectorAll('[data-edit]').forEach(el => el.addEventListener('click', ()=> loadForEdit(el.dataset.edit)));
+  wrap.querySelectorAll('[data-del]').forEach(el => el.addEventListener('click', ()=> askDelete(el, el.dataset.del)));
+  icons();
+}
+
+function loadForEdit(id){
+  const a = state.articles.find(x => x.id === id); if(!a) return;
+  state.editingId = id;
+  state.form = { title:a.title||'', body:a.body||'', sourceUrl:a.sourceUrl||'', tags:(a.tags||[]).join(', '), published:!!a.published };
+  renderAdmin();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function askDelete(btn, id){
+  if(btn.classList.contains('confirm')){ btn.classList.remove('confirm'); doDelete(id); return; }
+  document.querySelectorAll('.iconbtn.confirm').forEach(b => { b.classList.remove('confirm'); b.innerHTML = '<i data-lucide="trash-2"></i>'; });
+  btn.classList.add('confirm');
+  btn.textContent = 'sure?';
+  setTimeout(()=>{
+    if(btn.isConnected && btn.classList.contains('confirm')){
+      btn.classList.remove('confirm');
+      btn.innerHTML = '<i data-lucide="trash-2"></i>'; icons();
+    }
+  }, 2600);
+}
+async function doDelete(id){
+  try{
+    await db.collection('articles').doc(id).delete();
+    toast('Entry deleted.');
+    if(state.editingId === id) startNew();
+    await loadArticles(true);
+    renderAdmin();
+  }catch(e){
+    toast('Delete failed — ' + (e.code==='permission-denied' ? 'check your Firestore rules.' : e.message), 'err');
+  }
+}
+
+/* ============================================================
+   SETUP SCREEN (shown until the config is pasted in)
+   ============================================================ */
+function renderSetup(){
+  document.title = 'Setup — '+SITE.name;
+  app.innerHTML = `<div class="setup view">
+    <header class="masthead">
+      <div class="mast-row"><span>${esc(SITE.kicker)}</span><span>SETUP</span></div>
+      <div class="brand"><h1>${brandHTML()}</h1><p>${esc(SITE.tagline)}</p></div>
+    </header>
+    <h2>Three steps before the first post.</h2>
+    <div class="step"><span class="n">01</span><div>
+      <h3>Create a Firebase project</h3>
+      <p>The free tier is plenty. Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>,
+      create a project, then set up a <strong>Firestore database</strong> and enable <strong>Authentication → Email/Password</strong>.</p>
+    </div></div>
+    <div class="step"><span class="n">02</span><div>
+      <h3>Paste your web config</h3>
+      <p>In the console: Project settings → Your apps → Web app. Replace the placeholders in
+      <code>FIREBASE_CONFIG</code> at the top of this file, then reload:</p>
+      <pre class="codebox">const FIREBASE_CONFIG = {
+  apiKey: "AIza…",
+  authDomain: "my-log.firebaseapp.com",
+  projectId: "my-log",
+  …
+};</pre>
+    </div></div>
+    <div class="step"><span class="n">03</span><div>
+      <h3>Write from the publisher</h3>
+      <p>The blog lives at this URL. Your private posting desk lives at <code>#/admin</code> —
+      bookmark it, create your account on first use, and everything you publish appears here instantly.</p>
+    </div></div>
+  </div>`;
+  icons();
+}
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+let scrollHandler = null;
+function setBar(p){ bar.style.transform = `scaleX(${p})`; }
+function onScroll(){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  setBar(max > 0 ? window.scrollY / max : 0);
+}
+function route(){
+  if(scrollHandler){ window.removeEventListener('scroll', scrollHandler); scrollHandler = null; }
+  setBar(0);
+  window.scrollTo(0,0);
+  const h = location.hash || '#/';
+  if(h.startsWith('#/read/'))      renderReader(decodeURIComponent(h.slice(7)));
+  else if(h.startsWith('#/admin')) renderAdminGate();
+  else                             renderIndex();
+  icons();
+}
+
+window.addEventListener('hashchange', route);
+document.addEventListener('keydown', e => {
+  const h = location.hash || '#/';
+  if(h.startsWith('#/read/') && e.key === 'Escape') location.hash = '#/';
+  if(h.startsWith('#/admin') && state.user && (e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'Enter')){
+    e.preventDefault();
+    if($('#saveBtn')) saveArticle();
+  }
+});
+
+route();
+</script>
+</body>
+</html>

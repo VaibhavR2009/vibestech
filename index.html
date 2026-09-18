@@ -131,6 +131,7 @@
     font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(237,231,216,.45)}
   .prose img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin:.4em 0}
   .prose hr{border:0;border-top:1px solid var(--line);margin:2.2em 0}
+  .prose .vsp{height:16px}
   .endmark{display:flex;justify-content:center;margin-top:60px;color:var(--accent);font-size:11px}
 
   /* ---------- admin bar + editor ---------- */
@@ -346,7 +347,7 @@ const FIREBASE_CONFIG = {
 /* Site identity — rename freely */
 const SITE = {
   name: "/log",
-  tagline: "Tech simplified"
+  tagline: "Notes on technology, kept & catalogued."
 };
 /* ============================================================ */
 
@@ -447,7 +448,7 @@ function mdToHtml(src){
   const SPECIAL = /^(```|#{1,4}\s|>\s?|\s*[-*+]\s|\s*\d+[.)]\s|(-{3,}|\*{3,})\s*$)/;
   while(i < lines.length){
     const line = lines[i];
-    if(/^```/.test(line)){
+    if(/^```/.test(line)){                                   // fenced code block
       const lang = line.slice(3).trim(); i++;
       const buf = [];
       while(i < lines.length && !/^```/.test(lines[i])){ buf.push(lines[i]); i++; }
@@ -456,28 +457,36 @@ function mdToHtml(src){
       continue;
     }
     let m;
-    if((m = line.match(/^(#{1,4})\s+(.*)/))){
+    if((m = line.match(/^(#{1,4})\s+(.*)/))){                // heading
       const lv = Math.min(m[1].length + 1, 4);
       out.push(`<h${lv}>${inline(m[2])}</h${lv}>`); i++; continue;
     }
     if(/^(-{3,}|\*{3,})\s*$/.test(line)){ out.push('<hr>'); i++; continue; }
-    if(/^>\s?/.test(line)){
+    if(/^>\s?/.test(line)){                                  // blockquote
       const buf = [];
       while(i < lines.length && /^>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^>\s?/,'')); i++; }
       out.push(`<blockquote>${inline(buf.join('<br>'))}</blockquote>`); continue;
     }
-    if(/^\s*[-*+]\s+/.test(line)){
+    if(/^\s*[-*+]\s+/.test(line)){                           // unordered list
       const items = [];
       while(i < lines.length && /^\s*[-*+]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*[-*+]\s+/,''))+'</li>'); i++; }
       out.push('<ul>'+items.join('')+'</ul>'); continue;
     }
-    if(/^\s*\d+[.)]\s+/.test(line)){
+    if(/^\s*\d+[.)]\s+/.test(line)){                         // ordered list
       const items = [];
       while(i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>'); i++; }
       out.push('<ol>'+items.join('')+'</ol>'); continue;
     }
-    if(line.trim() === ''){ i++; continue; }
-    const buf = [line]; i++;
+    if(line.trim() === ''){                                  // blank lines — 1 = normal gap, each EXTRA one adds vertical space
+      let blanks = 0;
+      while(i < lines.length && lines[i].trim() === ''){ blanks++; i++; }
+      const extra = Math.min(blanks - 1, 3);                 // capped so pasted text can't create a huge hole
+      if(extra > 0 && out.length && i < lines.length){
+        for(let k = 0; k < extra; k++) out.push('<div class="vsp"></div>');
+      }
+      continue;
+    }
+    const buf = [line]; i++;                                 // paragraph
     while(i < lines.length && lines[i].trim() !== '' && !SPECIAL.test(lines[i])){ buf.push(lines[i]); i++; }
     out.push('<p>'+buf.map(inline).join('<br>')+'</p>');
   }
@@ -814,7 +823,8 @@ function renderAdmin(){
           <button class="mini" data-md="block">block</button>
         </div>
         <textarea id="bodyField" placeholder="Write in **markdown** — paste content from anywhere.
-Use the image button to embed pictures between paragraphs.">${esc(f.body)}</textarea>
+Use the image button to embed pictures between paragraphs.
+Extra blank lines between paragraphs add extra vertical space.">${esc(f.body)}</textarea>
         <div class="actions">
           <button class="btn btn-primary" id="saveBtn"><i data-lucide="${state.editingId?'check':'send-horizontal'}"></i>${state.editingId?'save changes':'publish entry'}</button>
           ${state.editingId ? '<button class="cancellink" id="cancelEdit">cancel editing</button>' : ''}
